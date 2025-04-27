@@ -1,4 +1,3 @@
-// *** IMPORTANTE: Reemplaza esta URL con la URL de tu Aplicación Web de Apps Script ***
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzMt-SOU-8M_pQHSbnHbMA1Zggs8uYljdcezBkG_fTaYNj4gnHvREC529eWorjFT99_/exec';
 
 
@@ -44,37 +43,33 @@ async function fetchData() {
 async function markAsReviewedOnSheet(uid) {
     try {
         const response = await fetch(APPS_SCRIPT_API_URL, {
-            method: 'POST', // Usamos POST para enviar datos
+            method: 'POST',
+            mode: 'cors', // Asegúrate de que esto está configurado
             headers: {
-                'Content-Type': 'application/json' // Indicamos que el cuerpo es JSON
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ // Enviamos un objeto JSON con la acción y el UID
+            body: JSON.stringify({
                 action: 'markAsReviewed',
                 uid: uid
             })
         });
 
         if (!response.ok) {
-             // Intentar leer el cuerpo del error si es posible
             const errorBody = await response.text();
-            console.error(`HTTP error! status: ${response.status}`, errorBody);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const result = await response.json(); // Esperamos una respuesta JSON de Apps Script
+        const result = await response.json();
 
         if (result.success) {
             console.log(`UID ${uid} marcado como revisado exitosamente.`);
-            // Recargar el dashboard para ver el cambio
             loadDashboard();
         } else {
-            console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
-            alert(`Error al marcar como revisado: ${result.message}`); // Mostrar un mensaje al usuario
+            throw new Error(result.message);
         }
-
     } catch (error) {
-        console.error(`Error en la petición POST para marcar UID ${uid}:`, error);
-        alert(`Error de conexión al intentar marcar como revisado.`); // Mostrar un mensaje al usuario
+        console.error(`Error al marcar UID ${uid}:`, error);
+        alert(`Error: ${error.message}`);
     }
 }
 
