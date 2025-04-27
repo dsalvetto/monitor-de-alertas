@@ -245,3 +245,40 @@ body {
     /* .alerta-item .content { width: 100%; } */
     /* .alerta-item .mark-indicator { margin-top: 10px; align-self: flex-end; } */
 }
+/* --- Estilos para el Modal --- */
+
+/* Clase para mostrar el modal (añadida/quitada con JS) */
+#alert-details-modal.visible {
+    display: flex; /* Cambia de hidden (display: none) a flex */
+}
+
+/* Estilo específico para el contenido del cuerpo en el modal */
+#modal-body-content {
+    white-space: pre-wrap; /* Conserva espacios y saltos de línea del texto plano */
+    word-wrap: break-word; /* Asegura que palabras largas se rompan */
+    font-family: monospace; /* Opcional: Usa fuente monoespaciada para cuerpos de correo */
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.4;
+}
+
+/* Asegurar que el scrollbar (si aparece) no sea demasiado intrusivo */
+#modal-body-content::-webkit-scrollbar {
+    width: 8px;
+}
+#modal-body-content::-webkit-scrollbar-track {
+    background: #334155; /* slate-700 */
+    border-radius: 4px;
+}
+#modal-body-content::-webkit-scrollbar-thumb {
+    background-color: #64748b; /* slate-500 */
+    border-radius: 4px;
+    border: 2px solid #334155; /* slate-700 - para crear un pequeño borde */
+}
+#modal-body-content::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8; /* slate-400 */
+}
+
+/* Pequeño ajuste para que el botón de cerrar no interfiera con el scrollbar si el título es largo */
+#modal-close-button {
+     z-index: 10; /* Asegura que esté sobre el título */
+}

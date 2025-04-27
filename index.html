@@ -47,6 +47,16 @@
         </div>
     </div>
 
+    <div id="alert-details-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex justify-center items-center hidden z-50 p-4">
+        <div class="bg-slate-700 rounded-lg shadow-xl p-6 w-full max-w-2xl relative max-h-[80vh] flex flex-col">
+            <button id="modal-close-button" class="absolute top-3 right-3 text-slate-400 hover:text-slate-100 text-2xl font-bold">&times;</button>
+            <h3 id="modal-title" class="text-xl font-semibold mb-4 text-blue-300 border-b border-slate-600 pb-2">Detalle de Alerta</h3>
+            <div id="modal-body-content" class="overflow-y-auto flex-grow text-slate-300 bg-slate-800 p-4 rounded mt-2">
+                <p>Cargando detalles...</p>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

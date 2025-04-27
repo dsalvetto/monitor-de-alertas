@@ -16,6 +16,182 @@ const errorHistorial = document.getElementById('error-historial');
 const sheetLink = document.getElementById('sheet-link'); // Referencia al botón de la hoja
 
 
+// --- Referencias a Elementos del Modal (añadir al inicio) ---
+const modal = document.getElementById('alert-details-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalBody = document.getElementById('modal-body-content');
+const modalCloseButton = document.getElementById('modal-close-button');
+
+// --- Variable global para almacenar los datos completos (añadir al inicio) ---
+let allAlertData = []; // Guardaremos aquí los objetos de alerta completos
+
+// --- Modificar la función fetchData para guardar los datos ---
+async function fetchData() {
+    try {
+        // ... (código existente para fetch)
+        const response = await fetch(APPS_SCRIPT_API_URL); //
+        if (!response.ok) { /* ... */ } //
+        const data = await response.json(); //
+        if (data.error) { /* ... */ } //
+
+        // *** NUEVO: Guardar los datos completos en la variable global ***
+        if (data && Array.isArray(data.data)) {
+             allAlertData = data.data; // Guarda todos los datos recibidos
+        } else {
+             allAlertData = []; // Limpia si no hay datos válidos
+        }
+        // console.log("Datos completos almacenados:", allAlertData); // Para depuración
+
+        return data; // Sigue devolviendo los datos como antes
+    } catch (error) {
+        console.error("Error fetching data:", error); //
+        allAlertData = []; // Limpia en caso de error
+        throw error; //
+    }
+}
+
+
+// --- Función para mostrar el Modal con detalles ---
+function showDetailsModal(uid) {
+    // Buscar la alerta completa usando el UID en los datos almacenados
+    const alertDetail = allAlertData.find(item => item.UID === uid);
+
+    if (alertDetail) {
+        modalTitle.textContent = alertDetail.Asunto || 'Detalle de Alerta';
+        // Usar textContent para insertar el cuerpo como texto plano (más seguro)
+        // Conserva saltos de línea gracias al CSS 'white-space: pre-wrap;'
+        modalBody.textContent = alertDetail.Cuerpo || 'No hay cuerpo disponible.';
+        modal.classList.add('visible'); // Mostrar el modal
+    } else {
+        console.error("No se encontraron detalles para el UID:", uid);
+        // Opcional: Mostrar un mensaje de error en el modal
+        modalTitle.textContent = 'Error';
+        modalBody.textContent = 'No se pudieron cargar los detalles para esta alerta.';
+        modal.classList.add('visible');
+    }
+}
+
+// --- Función para cerrar el Modal ---
+function closeModal() {
+    if (modal) { // Verifica si el modal existe
+       modal.classList.remove('visible'); // Ocultar el modal
+       // Resetear contenido mientras está oculto (opcional)
+       modalTitle.textContent = 'Detalle de Alerta';
+       modalBody.textContent = 'Cargando detalles...';
+    }
+}
+
+// --- Añadir Listeners para cerrar el Modal ---
+if (modalCloseButton) { // Verifica si el botón existe
+   modalCloseButton.addEventListener('click', closeModal);
+}
+if (modal) { // Verifica si el modal existe
+   // Cerrar también si se hace clic en el fondo oscuro (fuera del contenido del modal)
+   modal.addEventListener('click', (event) => {
+       // Si el clic fue directamente sobre el fondo (modal) y no sobre sus hijos
+       if (event.target === modal) {
+           closeModal();
+       }
+   });
+}
+
+
+// --- Modificar displayPositiveAlerts para añadir listener ---
+function displayPositiveAlerts(data) {
+    listaAlertasDiv.innerHTML = ''; // Limpia el contenido actual
+
+    const unreviewedPositiveAlerts = data.filter(item => item.Estado === 'Positivo' && item.Revisado !== 'Sí'); //
+
+    if (unreviewedPositiveAlerts.length === 0) { //
+        noAlertas.classList.remove('hidden'); //
+    } else {
+        noAlertas.classList.add('hidden'); //
+        unreviewedPositiveAlerts.forEach(alert => {
+            const alertaItem = document.createElement('div'); //
+            alertaItem.classList.add('alerta-item', 'positivo'); //
+            alertaItem.dataset.uid = alert.UID; // *** NUEVO: Guardar UID en dataset ***
+
+            const formattedTimestamp = formatDateForDisplay(alert.Timestamp); //
+
+            // Contenido del item (igual que antes)
+            alertaItem.innerHTML = `
+                <div class="content">
+                    <div class="timestamp">${formattedTimestamp}</div>
+                    <div class="asunto">${alert.Asunto}</div>
+                </div>
+                <div class="mark-indicator" data-uid="${alert.UID}" title="Marcar como visto">
+                     <i class="fas fa-check"></i>
+                </div>
+            `; //
+
+            const markIndicator = alertaItem.querySelector('.mark-indicator'); //
+            if (markIndicator) { //
+                 // Listener para marcar como visto (sin cambios)
+                 markIndicator.addEventListener('click', (event) => { //
+                    event.stopPropagation(); // Evita que el clic se propague al item padre
+                    const uid = markIndicator.dataset.uid; //
+                    markAsReviewedOnSheet(uid, markIndicator, alertaItem); //
+                 });
+            }
+
+            // *** NUEVO: Listener para abrir el modal (en el item completo) ***
+            alertaItem.addEventListener('click', (event) => {
+                // No abrir modal si se hizo clic en el botón de marcar
+                if (event.target === markIndicator || markIndicator.contains(event.target)) {
+                    return;
+                }
+                const uid = alertaItem.dataset.uid;
+                if (uid) {
+                    showDetailsModal(uid);
+                }
+            });
+
+            listaAlertasDiv.appendChild(alertaItem); //
+        });
+    }
+}
+
+
+// --- Modificar displayHistory para añadir listener ---
+function displayHistory(data) {
+    cuerpoTablaHistorial.innerHTML = ''; // Limpia el contenido actual
+
+    if (data.length === 0) { //
+        noHistorial.classList.remove('hidden'); //
+    } else {
+        noHistorial.classList.add('hidden'); //
+        data.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp)); //
+
+        // Indices de columnas (sin cambios)
+        const headers = data.length > 0 ? Object.keys(data[0]) : []; //
+        // ... (timestampIndex, asuntoIndex, estadoIndex, revisadoIndex) ...
+
+        data.forEach((item, index) => {
+            const row = document.createElement('tr'); //
+            if (item.Estado === 'Positivo') row.classList.add('positivo'); //
+            if (item.Revisado === 'Sí') row.classList.add('revisado'); //
+            row.style.cursor = 'pointer'; // Añadir cursor pointer a la fila
+            row.dataset.uid = item.UID; // *** NUEVO: Guardar UID en dataset de la fila ***
+
+            // Celdas (sin cambios en cómo se crean)
+            const numberTd = document.createElement('td'); /* ... */ row.appendChild(numberTd); //
+            const formattedTimestamp = formatDateForDisplay(item.Timestamp); //
+            // ... añadir celdas de timestamp, asunto, estado, revisado ...
+
+
+            // *** NUEVO: Listener para abrir el modal (en la fila completa) ***
+            row.addEventListener('click', () => {
+                 const uid = row.dataset.uid;
+                 if (uid) {
+                    showDetailsModal(uid);
+                 }
+            });
+
+            cuerpoTablaHistorial.appendChild(row); //
+        });
+    }
+}
+
 // --- Función auxiliar para formatear la fecha para mostrar en el frontend ---
 // Recibe la fecha como string en formato "yyyy-MM-dd HH:mm:ss" (como se guarda en la hoja)
 // y la convierte a "dd/mm/yyyy HH:mm".
