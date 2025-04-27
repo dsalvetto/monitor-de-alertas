@@ -1,4 +1,3 @@
-/* Estilos básicos personalizados, complementan Tailwind */
 body {
     font-family: 'Inter', sans-serif; /* Usando Inter como se sugirió */
     margin: 0;
@@ -14,8 +13,13 @@ body {
     padding: 1rem; /* p-4 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: relative; /* Necesario para posicionar el indicador de revisado */
-    cursor: pointer; /* Indica que la tarjeta es clickeable */
+    cursor: pointer; /* Indica que la tarjeta es clickeable (opcional, si la tarjeta completa es clickeable) */
     transition: background-color 0.2s ease-in-out;
+    /* Usamos flexbox para alinear contenido y el indicador en una fila */
+    display: flex;
+    align-items: center; /* Centra verticalmente los elementos */
+    justify-content: space-between; /* Espacio entre el contenido y el indicador */
+    gap: 10px; /* Espacio entre el contenido y el indicador */
 }
 
 .alerta-item:hover {
@@ -25,6 +29,15 @@ body {
 .alerta-item.positivo {
     border-left: 5px solid #f87171; /* red-400 */
 }
+
+/* Contenedor para el timestamp y asunto */
+.alerta-item .content {
+     display: flex; /* Usa flexbox para timestamp y asunto */
+     flex-direction: column; /* Apila timestamp y asunto */
+     flex-grow: 1; /* Permite que el contenido ocupe el espacio disponible */
+     min-width: 0; /* Permite que el contenido se encoja si es necesario */
+}
+
 
 .alerta-item .timestamp {
     font-size: 0.875rem; /* text-sm */
@@ -36,36 +49,41 @@ body {
     font-weight: 600; /* font-semibold */
     color: #e2e8f0; /* slate-200 */
     word-break: break-word; /* Romper palabras largas si es necesario */
-    padding-right: 30px; /* Espacio para el indicador de revisado */
+    /* padding-right: 30px; -- Ya no es necesario con flexbox y gap */
+    overflow: hidden; /* Oculta el texto que exceda */
+    text-overflow: ellipsis; /* Añade puntos suspensivos si el texto es muy largo */
+    white-space: nowrap; /* Mantiene el texto en una sola línea */
 }
 
-/* Indicador de "Marcar como visto" (sutil) */
+/* Indicador de "Marcar como visto" (sutil con ícono) */
 .alerta-item .mark-indicator {
-    position: absolute;
-    top: 1rem; /* Alineado con la parte superior del padding */
-    right: 1rem; /* Alineado con la parte derecha del padding */
-    width: 20px; /* Tamaño del área clickeable */
-    height: 20px; /* Tamaño del área clickeable */
+    /* position: absolute; -- Ya no es necesario con flexbox */
+    /* top: 1rem; -- Ya no es necesario con flexbox */
+    /* right: 1rem; -- Ya no es necesario con flexbox */
+    flex-shrink: 0; /* Evita que el indicador se encoja */
+    width: 30px; /* Tamaño del área clickeable */
+    height: 30px; /* Tamaño del área clickeable */
     border: 1px solid #94a3b8; /* slate-400 border */
     border-radius: 4px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: transparent; /* Ícono o texto invisible por defecto */
-    transition: border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    color: transparent; /* Ícono invisible por defecto */
+    transition: border-color 0.2s ease-in-out, color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    font-size: 1.2rem; /* Tamaño del ícono */
 }
 
 .alerta-item .mark-indicator:hover {
     border-color: #60a5fa; /* blue-400 */
-    color: #60a5fa; /* blue-400 color para el ícono/texto en hover */
+    color: #60a5fa; /* blue-400 color para el ícono en hover */
 }
 
 .alerta-item .mark-indicator.marked {
-     border-color: #34d399; /* green-400 */
-     color: #34d399; /* green-400 color para el ícono/texto cuando está marcado */
-     background-color: rgba(52, 211, 153, 0.2); /* Fondo verde sutil */
-     cursor: default; /* Cambia el cursor */
+    border-color: #34d399; /* green-400 */
+    color: #34d399; /* green-400 color para el ícono cuando está marcado */
+    background-color: rgba(52, 211, 153, 0.2); /* Fondo verde sutil */
+    cursor: default; /* Cambia el cursor */
 }
 
 /* Estilos para la tabla */
@@ -94,6 +112,6 @@ body {
 
 /* Estilo para filas revisadas en el historial (texto atenuado e itálica) */
 #tabla-historial tbody tr.revisado td {
-     color: #94a3b8; /* slate-400 */
-     font-style: italic;
+    color: #94a3b8; /* slate-400 */
+    font-style: italic;
 }
