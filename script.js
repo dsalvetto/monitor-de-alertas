@@ -1,4 +1,4 @@
-// Asumo que este código está en script.js
+
 // Asegúrate de que APPS_SCRIPT_API_URL esté definida correctamente al inicio de tu script.js
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbxeXpD489DpFr_zcSlYQ2byXx642_forWE5wUUB72kHX9PDW2w93WgrDU8noMXOIBFf/exec';
 
@@ -111,7 +111,7 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
         if (result.success) {
             console.log(`UID ${uid} marcado como revisado exitosamente.`);
             // Recargar el dashboard para ver el cambio
-            loadDashboard();
+            loadDashboard(); // Llama a loadDashboard para obtener los datos actualizados y mostrarlos filtrados
         } else {
             console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
             alert(`Error al marcar como revisado: ${result.message}`); // Mostrar un mensaje al usuario
@@ -168,6 +168,7 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
 function displayPositiveAlerts(data) {
     listaAlertasDiv.innerHTML = ''; // Limpia el contenido actual
 
+    // Filtra solo las alertas que son Positivas Y NO están marcadas como Revisado
     const unreviewedPositiveAlerts = data.filter(item => item.Estado === 'Positivo' && item.Revisado !== 'Sí');
 
     if (unreviewedPositiveAlerts.length === 0) {
@@ -194,7 +195,7 @@ function displayPositiveAlerts(data) {
                  markIndicator.addEventListener('click', async (event) => {
                     event.stopPropagation();
                     const uid = markIndicator.dataset.uid;
-                    markAsReviewedOnSheet(uid, markIndicator);
+                    markAsReviewedOnSheet(uid, markIndicator); // Llama a la función de marcado que usa JSONP
                  });
             } else {
                 console.error("Error: mark-indicator element not found for alert UID:", alert.UID);
@@ -270,9 +271,9 @@ function displayHistory(data) {
     }
 }
 
-// Función principal para cargar y mostrar todo
-// (Este código no cambia, ya que fetchData sigue usando GET estándar)
+// --- Función principal para cargar y mostrar todo ---
 async function loadDashboard() {
+    // Mostrar indicadores de carga
     loadingAlertas.classList.remove('hidden');
     loadingHistorial.classList.remove('hidden');
     noAlertas.classList.add('hidden');
@@ -284,8 +285,31 @@ async function loadDashboard() {
         const data = await fetchData(); // Obtiene { headers, data }
 
         if (data && Array.isArray(data.data)) {
-             displayPositiveAlerts(data.data);
-             displayHistory(data.data); // Llama a la función actualizada
+            // --- Filtrar para obtener solo una entrada por UID único ---
+            const uniqueAlertsMap = new Map();
+            const uidIndex = data.headers.indexOf('UID'); // Obtener el índice de la columna UID
+
+            if (uidIndex !== -1) {
+                // Iterar sobre los datos y guardar la última entrada para cada UID
+                data.data.forEach(item => {
+                    const uid = item.UID; // Acceder al UID usando el nombre de la columna
+                    if (uid) { // Asegurarse de que el UID no sea nulo o vacío
+                        uniqueAlertsMap.set(uid, item);
+                    }
+                });
+            } else {
+                 console.error("Error: 'UID' column not found in fetched data headers.");
+                 // Si no hay columna UID, mostramos todos los datos sin filtrar por UID
+                 data.data.forEach(item => uniqueAlertsMap.set(JSON.stringify(item), item)); // Usar la fila completa como clave (menos eficiente)
+            }
+
+
+            // Convertir el Map de vuelta a un array de objetos
+            const uniqueAlerts = Array.from(uniqueAlertsMap.values());
+
+             // Pasamos el array filtrado a ambas funciones de display
+             displayPositiveAlerts(uniqueAlerts);
+             displayHistory(uniqueAlerts); // Llama a la función actualizada
         } else {
              throw new Error("Datos recibidos de la API no tienen el formato esperado o están vacíos.");
         }
@@ -309,3 +333,4 @@ window.onload = loadDashboard;
 
 // Opcional: Recargar datos periódicamente (ej: cada 5 minutos)
 // setInterval(loadDashboard, 5 * 60 * 1000); // 5 minutos en milisegundos
+
