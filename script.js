@@ -91,14 +91,19 @@ async function fetchData() {
 }
 
 // --- Función para enviar solicitud a Apps Script para marcar como revisado (usa JSONP) ---
-function markAsReviewedOnSheet(uid, markIndicatorElement) {
+function markAsReviewedOnSheet(uid, markIndicatorElement, alertItemElement) { // Recibe el elemento completo de la alerta
     // Deshabilitar el indicador visualmente durante la petición
     if (markIndicatorElement) {
         markIndicatorElement.style.pointerEvents = 'none'; // Deshabilita clics
-        markIndicatorElement.style.opacity = '0.5'; // Atenuar visualmente
-        // Mostrar ícono de carga (spinner) de Font Awesome
-        markIndicatorElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        // markIndicatorElement.style.opacity = '0.5'; // Atenuar solo el indicador (opcional)
+        markIndicatorElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Mostrar ícono de carga (spinner)
     }
+
+    // Añadir clase al elemento completo de la alerta para indicar estado pendiente
+    if (alertItemElement) {
+        alertItemElement.classList.add('pending-review');
+    }
+
 
     const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
@@ -108,7 +113,11 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
         // Revertir ícono de carga a checkmark original
         if (markIndicatorElement) {
              markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
+             markIndicatorElement.style.pointerEvents = 'auto'; // Habilitar clics de nuevo
+             // markIndicatorElement.style.opacity = '1'; // Revertir opacidad del indicador (opcional)
         }
+
+        // La clase 'pending-review' se eliminará automáticamente cuando loadDashboard redibuje la lista
 
 
         if (result.success) {
@@ -119,11 +128,10 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
             console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
             alert(`Error al marcar como revisado: ${result.message}`);
 
-            // Revertir estado visual si hubo error
-            if (markIndicatorElement) {
-                markIndicatorElement.style.pointerEvents = 'auto';
-                markIndicatorElement.style.opacity = '1';
-            }
+            // Si hubo un error, eliminar la clase 'pending-review' manualmente ya que loadDashboard no se llamó
+             if (alertItemElement) {
+                alertItemElement.classList.remove('pending-review');
+             }
         }
 
         // Limpiar: Eliminar el script tag y la función callback global
@@ -147,11 +155,15 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
 
         // Revertir estado visual si hubo error de conexión
         if (markIndicatorElement) {
-            markIndicatorElement.style.pointerEvents = 'auto';
-            markIndicatorElement.style.opacity = '1';
-             // Revertir ícono de carga a checkmark original
-             markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
+            markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
+            markIndicatorElement.style.pointerEvents = 'auto'; // Habilitar clics de nuevo
+            // markIndicatorElement.style.opacity = '1'; // Revertir opacidad del indicador (opcional)
         }
+         // Si hubo un error, eliminar la clase 'pending-review' manualmente
+         if (alertItemElement) {
+            alertItemElement.classList.remove('pending-review');
+         }
+
         // Limpiar la función callback aunque el script no cargó
         delete window[callbackName];
         const scriptElement = document.getElementById(callbackName + '_script');
@@ -194,7 +206,8 @@ function displayPositiveAlerts(data) {
                  markIndicator.addEventListener('click', async (event) => {
                     event.stopPropagation();
                     const uid = markIndicator.dataset.uid;
-                    markAsReviewedOnSheet(uid, markIndicator); // Llama a la función de marcado que usa JSONP
+                    // Llama a la función de marcado que usa JSONP, pasando el elemento completo de la alerta
+                    markAsReviewedOnSheet(uid, markIndicator, alertaItem);
                  });
             } else {
                 console.error("Error: mark-indicator element not found for alert UID:", alert.UID);

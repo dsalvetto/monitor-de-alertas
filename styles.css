@@ -14,7 +14,7 @@ body {
     padding: 1rem; /* p-4 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     cursor: pointer; /* Indica que la tarjeta es clickeable (opcional, si la tarjeta completa es clickeable) */
-    transition: background-color 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, opacity 0.2s ease-in-out; /* Añadir transición para opacidad */
     /* Usamos flexbox para alinear contenido y el indicador en una fila en pantallas grandes */
     display: flex;
     align-items: center; /* Centra verticalmente los elementos */
@@ -30,6 +30,15 @@ body {
 .alerta-item.positivo {
     border-left: 5px solid #f87171; /* red-400 */
 }
+
+/* Clase para indicar que la alerta está pendiente de revisión/actualización */
+.alerta-item.pending-review {
+    opacity: 0.6; /* Atenuar la tarjeta */
+    /* Opcional: añadir un borde o cambiar el fondo sutilmente */
+    /* border-color: #60a5fa; */
+    /* background-color: rgba(96, 165, 250, 0.1); */
+}
+
 
 /* Contenedor para el timestamp y asunto */
 .alerta-item .content {
@@ -164,7 +173,7 @@ body {
 .historial-header {
     display: flex; /* Usa flexbox para alinear el título y el botón */
     align-items: center; /* Centra verticalmente */
-    justify-content: space-between; /* Espacio entre el título y el botón */
+    justify-content: space-between; /* Espacio entre el contenido y el botón */
     margin-bottom: 1rem; /* mb-4 */
 }
 
