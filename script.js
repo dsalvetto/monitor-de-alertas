@@ -1,5 +1,5 @@
 // *** IMPORTANTE: Reemplaza esta URL con la URL de tu API Ejecutable de Apps Script ***
-const APPS_SCRIPT_API_URL = 'https://script.googleapis.com/v1/scripts/AKfycbw45o-AQ73rdgoj50a4Lwf9-KfDzc5POhqFD5TYHDb1trzmIHdKX6E7X9wT53A-Pkay:run';
+const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzMt-SOU-8M_pQHSbnHbMA1Zggs8uYljdcezBkG_fTaYNj4gnHvREC529eWorjFT99_/exec';
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
