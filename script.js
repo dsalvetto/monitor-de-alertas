@@ -1,6 +1,7 @@
 // *** IMPORTANTE: Reemplaza esta URL con la URL de tu Aplicación Web de Apps Script ***
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzMt-SOU-8M_pQHSbnHbMA1Zggs8uYljdcezBkG_fTaYNj4gnHvREC529eWorjFT99_/exec';
 
+
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
 const noAlertas = document.getElementById('no-alertas');
@@ -18,6 +19,9 @@ async function fetchData() {
         const response = await fetch(APPS_SCRIPT_API_URL);
 
         if (!response.ok) {
+            // Intentar leer el cuerpo del error si es posible
+            const errorBody = await response.text();
+            console.error(`HTTP error! status: ${response.status}`, errorBody);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -25,6 +29,7 @@ async function fetchData() {
 
         // La función doGet devuelve { headers: [...], data: [...] } o { error: "..." }
         if (data.error) {
+            console.error("API Error:", data.error);
             throw new Error(`API Error: ${data.error}`);
         }
 
@@ -50,6 +55,9 @@ async function markAsReviewedOnSheet(uid) {
         });
 
         if (!response.ok) {
+             // Intentar leer el cuerpo del error si es posible
+            const errorBody = await response.text();
+            console.error(`HTTP error! status: ${response.status}`, errorBody);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -57,8 +65,7 @@ async function markAsReviewedOnSheet(uid) {
 
         if (result.success) {
             console.log(`UID ${uid} marcado como revisado exitosamente.`);
-            // Opcional: Actualizar la UI sin recargar toda la página
-            // Por ahora, simplemente recargaremos el dashboard para ver el cambio
+            // Recargar el dashboard para ver el cambio
             loadDashboard();
         } else {
             console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
@@ -87,13 +94,15 @@ function displayPositiveAlerts(data) {
             const alertaItem = document.createElement('div');
             alertaItem.classList.add('alerta-item', 'positivo');
 
+            // --- Nueva estructura interna para el diseño ---
             alertaItem.innerHTML = `
-                <div>
+                <div class="content">
                     <div class="timestamp">${alert.Timestamp}</div>
                     <div class="asunto">${alert.Asunto}</div>
                     </div>
                 <button class="mark-reviewed-btn" data-uid="${alert.UID}">Marcar como visto</button>
             `;
+            // --- Fin Nueva estructura ---
 
             // Añadir el evento click al botón
             const markButton = alertaItem.querySelector('.mark-reviewed-btn');
@@ -165,7 +174,7 @@ async function loadDashboard() {
              displayPositiveAlerts(data.data);
              displayHistory(data.data);
         } else {
-             throw new Error("Datos recibidos de la API no tienen el formato esperado.");
+             throw new Error("Datos recibidos de la API no tienen el formato esperado o están vacíos.");
         }
 
     } catch (error) {
