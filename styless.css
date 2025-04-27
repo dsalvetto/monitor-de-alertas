@@ -1,5 +1,5 @@
-  /* Estilos básicos personalizados, complementan Tailwind */
-  body {
+/* Estilos básicos personalizados, complementan Tailwind */
+body {
     font-family: 'Inter', sans-serif; /* Usando Inter como se sugirió */
     margin: 0;
     padding: 20px;
@@ -13,7 +13,7 @@
     border-radius: 0.5rem; /* rounded-lg */
     padding: 1rem; /* p-4 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative; /* Necesario para posicionar el indicador de revisado */
+    /* position: relative; -- Ya no es necesario con flexbox */
     cursor: pointer; /* Indica que la tarjeta es clickeable (opcional, si la tarjeta completa es clickeable) */
     transition: background-color 0.2s ease-in-out;
     /* Usamos flexbox para alinear contenido y el indicador en una fila */
@@ -27,6 +27,7 @@
     background-color: #475569; /* slate-600 */
 }
 
+/* Clase para la línea roja en alertas positivas */
 .alerta-item.positivo {
     border-left: 5px solid #f87171; /* red-400 */
 }
@@ -50,7 +51,6 @@
     font-weight: 600; /* font-semibold */
     color: #e2e8f0; /* slate-200 */
     word-break: break-word; /* Romper palabras largas si es necesario */
-    /* padding-right: 30px; -- Ya no es necesario con flexbox y gap */
     overflow: hidden; /* Oculta el texto que exceda */
     text-overflow: ellipsis; /* Añade puntos suspensivos si el texto es muy largo */
     white-space: nowrap; /* Mantiene el texto en una sola línea */
@@ -58,9 +58,6 @@
 
 /* Indicador de "Marcar como visto" (sutil con ícono) */
 .alerta-item .mark-indicator {
-    /* position: absolute; -- Ya no es necesario con flexbox */
-    /* top: 1rem; -- Ya no es necesario con flexbox */
-    /* right: 1rem; -- Ya no es necesario con flexbox */
     flex-shrink: 0; /* Evita que el indicador se encoja */
     width: 30px; /* Tamaño del área clickeable */
     height: 30px; /* Tamaño del área clickeable */
@@ -88,24 +85,34 @@
 }
 
 /* Estilos para la tabla */
+#tabla-historial {
+     width: 100%;
+     border-collapse: collapse;
+     margin-top: 10px;
+     background: #334155; /* Fondo oscuro para la tabla */
+     border-radius: 0.5rem; /* rounded-lg */
+     overflow: hidden;
+     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
 #tabla-historial th {
     padding-top: 12px;
     padding-bottom: 12px;
     text-align: left;
     background-color: #475569; /* slate-600 */
     color: white;
+    padding-left: 1.5rem; /* px-6 */
+    padding-right: 1.5rem; /* px-6 */
 }
 
 #tabla-historial td {
     padding: 12px 6px;
     border-bottom: 1px solid #475569; /* slate-600 */
+    padding-left: 1.5rem; /* px-6 */
+    padding-right: 1.5rem; /* px-6 */
 }
 
-#tabla-historial tbody tr:hover {
-    background-color: #334155; /* slate-700 */
-}
-
-/* Estilo para filas positivas en el historial (color rojo) */
+ /* Asegura que las celdas de la fila positiva tengan el color rojo */
 #tabla-historial tbody tr.positivo td {
     color: #f87171; /* red-400 */
     font-weight: 600;
@@ -115,4 +122,23 @@
 #tabla-historial tbody tr.revisado td {
     color: #94a3b8; /* slate-400 */
     font-style: italic;
+}
+
+#tabla-historial tbody tr:hover {
+    background-color: #475569; /* slate-600 */
+}
+
+/* Estilos para los mensajes de estado/carga/error */
+#loading-alertas, #no-alertas, #error-alertas,
+#loading-historial td, #no-historial td, #error-historial td {
+    text-align: center;
+    font-style: italic;
+}
+
+ #error-alertas, #error-historial td {
+     color: #f87171; /* red-400 */
+ }
+
+#no-alertas, #no-historial td {
+    color: #34d399; /* green-400 */
 }

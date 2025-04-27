@@ -1,4 +1,4 @@
-const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbyMbdZKL4ig4OYsWEMX_4ucNuVko-OCXw1UgnJ90vP3KwdrGRR26Vnl5Dw21KvkN51s/exec';
+const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzMt-SOU-8M_pQHSbnHbMA1Zggs8uYljdcezBkG_fTaYNj4gnHvREC529eWorjFT99_/exec';
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
@@ -106,32 +106,40 @@ function displayPositiveAlerts(data) {
         noAlertas.classList.add('hidden');
         unreviewedPositiveAlerts.forEach(alert => {
             const alertaItem = document.createElement('div');
+            // Añade las clases CSS para el estilo de tarjeta y la línea roja
             alertaItem.classList.add('alerta-item', 'positivo');
 
-            // --- Estructura interna para el diseño original con indicador sutil ---
+            // --- Estructura interna con ícono de checkmark ---
+            // Esta estructura debe coincidir con los estilos CSS para flexbox
             alertaItem.innerHTML = `
                 <div class="content">
                     <div class="timestamp">${alert.Timestamp}</div>
                     <div class="asunto">${alert.Asunto}</div>
-                    </div>
+                </div>
                 <div class="mark-indicator" data-uid="${alert.UID}" title="Marcar como visto">
-                    </div>
+                     <i class="fas fa-check"></i> </div>
             `;
             // --- Fin Estructura ---
 
             // Añadir el evento click al indicador de marcado
             const markIndicator = alertaItem.querySelector('.mark-indicator');
-            markIndicator.addEventListener('click', async (event) => {
-                event.stopPropagation(); // Evita que el clic en el indicador también active el clic en la tarjeta si lo implementas
+            // Verifica que el elemento markIndicator exista antes de añadir el listener
+            if (markIndicator) {
+                 markIndicator.addEventListener('click', async (event) => {
+                    event.stopPropagation(); // Evita que el clic en el indicador también active el clic en la tarjeta si lo implementas
 
-                const uid = markIndicator.dataset.uid; // Obtener el UID del atributo data-uid
-                await markAsReviewedOnSheet(uid, markIndicator); // Llamar a la función para marcar en la hoja, pasando el elemento indicador
-            });
+                    const uid = markIndicator.dataset.uid; // Obtener el UID del atributo data-uid
+                    await markAsReviewedOnSheet(uid, markIndicator); // Llamar a la función para marcar en la hoja, pasando el elemento indicador
+                 });
+            } else {
+                console.error("Error: mark-indicator element not found for alert UID:", alert.UID);
+            }
 
             listaAlertasDiv.appendChild(alertaItem);
         });
     }
 }
+
 
 // Función para mostrar el historial completo
 function displayHistory(data) {
