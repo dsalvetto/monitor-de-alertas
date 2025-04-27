@@ -1,0 +1,49 @@
+/* Estilos básicos personalizados, complementan Tailwind */
+.alerta-item {
+    background-color: #334155; /* slate-700 */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 1rem; /* p-4 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alerta-item.positivo {
+    border-left: 5px solid #f87171; /* red-400 */
+}
+
+.alerta-item .timestamp {
+    font-size: 0.875rem; /* text-sm */
+    color: #94a3b8; /* slate-400 */
+    margin-bottom: 0.5rem;
+}
+
+.alerta-item .asunto {
+    font-weight: 600; /* font-semibold */
+    color: #e2e8f0; /* slate-200 */
+}
+
+/* Estilos para la tabla */
+#tabla-historial th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #475569; /* slate-600 */
+    color: white;
+}
+
+#tabla-historial td {
+    padding: 12px 6px;
+    border-bottom: 1px solid #475569; /* slate-600 */
+}
+
+#tabla-historial tbody tr:hover {
+    background-color: #334155; /* slate-700 */
+}
+
+/* Estilo para filas positivas en el historial */
+#tabla-historial tbody tr.positivo td {
+    color: #f87171; /* red-400 */
+    font-weight: 600;
+}

@@ -15,56 +15,23 @@
             background-color: #1e293b; /* Fondo oscuro */
             color: #e2e8f0; /* Texto claro */
         }
-
-        /* Estilos básicos personalizados, complementan Tailwind */
-.alerta-item {
-    background-color: #334155; /* slate-700 */
-    border-radius: 0.5rem; /* rounded-lg */
-    padding: 1rem; /* p-4 */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.alerta-item.positivo {
-    border-left: 5px solid #f87171; /* red-400 */
-}
-
-.alerta-item .timestamp {
-    font-size: 0.875rem; /* text-sm */
-    color: #94a3b8; /* slate-400 */
-    margin-bottom: 0.5rem;
-}
-
-.alerta-item .asunto {
-    font-weight: 600; /* font-semibold */
-    color: #e2e8f0; /* slate-200 */
-}
-
-/* Estilos para la tabla */
-#tabla-historial th {
-    padding-top: 12px;
-    padding-bottom: 12px;
-    text-align: left;
-    background-color: #475569; /* slate-600 */
-    color: white;
-}
-
-#tabla-historial td {
-    padding: 12px 6px;
-    border-bottom: 1px solid #475569; /* slate-600 */
-}
-
-#tabla-historial tbody tr:hover {
-    background-color: #334155; /* slate-700 */
-}
-
-/* Estilo para filas positivas en el historial */
-#tabla-historial tbody tr.positivo td {
-    color: #f87171; /* red-400 */
-    font-weight: 600;
-}
+        /* Estilos adicionales para el botón de marcar como visto */
+        .mark-reviewed-btn {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .mark-reviewed-btn:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+         .mark-reviewed-btn:disabled {
+            background-color: #60a5fa; /* blue-400 */
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="bg-slate-800 text-slate-200 p-5">
@@ -93,13 +60,10 @@
                             <th class="py-3 px-6 text-left">Estado</th>
                             <th class="py-3 px-6 text-left">Identificador</th>
                             <th class="py-3 px-6 text-left">Descripción</th>
-                            </tr>
+                            <th class="py-3 px-6 text-left">Revisado</th> </tr>
                     </thead>
                     <tbody id="cuerpo-tabla-historial" class="text-slate-300 text-sm font-light">
-                        <tr id="loading-historial"><td colspan="5" class="py-3 px-6 text-center">Cargando historial...</td></tr>
-                        <tr id="no-historial" class="hidden"><td colspan="5" class="py-3 px-6 text-center text-green-400">No hay historial disponible.</td></tr>
-                         <tr id="error-historial" class="hidden"><td colspan="5" class="py-3 px-6 text-center text-red-600">Error al cargar el historial.</td></tr>
-                    </tbody>
+                        <tr id="loading-historial"><td colspan="6" class="py-3 px-6 text-center">Cargando historial...</td></tr> <tr id="no-historial" class="hidden"><td colspan="6" class="py-3 px-6 text-center text-green-400">No hay historial disponible.</td></tr> <tr id="error-historial" class="hidden"><td colspan="6" class="py-3 px-6 text-center text-red-600">Error al cargar el historial.</td></tr> </tbody>
                 </table>
             </div>
         </div>

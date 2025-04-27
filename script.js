@@ -1,4 +1,4 @@
-// *** IMPORTANTE: Reemplaza esta URL con la URL de tu API Ejecutable de Apps Script ***
+// *** IMPORTANTE: Reemplaza esta URL con la URL de tu Aplicación Web de Apps Script ***
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzMt-SOU-8M_pQHSbnHbMA1Zggs8uYljdcezBkG_fTaYNj4gnHvREC529eWorjFT99_/exec';
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
@@ -12,7 +12,7 @@ const noHistorial = document.getElementById('no-historial');
 const errorHistorial = document.getElementById('error-historial');
 
 
-// Función para obtener datos de la API de Apps Script
+// Función para obtener datos de la API de Apps Script (usa GET)
 async function fetchData() {
     try {
         const response = await fetch(APPS_SCRIPT_API_URL);
@@ -23,7 +23,7 @@ async function fetchData() {
 
         const data = await response.json(); // La API de Apps Script devuelve JSON
 
-        // La función getAlertsDataForFrontend devuelve { headers: [...], data: [...] } o { error: "..." }
+        // La función doGet devuelve { headers: [...], data: [...] } o { error: "..." }
         if (data.error) {
             throw new Error(`API Error: ${data.error}`);
         }
@@ -31,31 +31,82 @@ async function fetchData() {
         return data; // Devuelve el objeto { headers, data }
     } catch (error) {
         console.error("Error fetching data:", error);
-        // Propaga el error para que las funciones que llaman puedan manejarlo
-        throw error;
+        throw error; // Propaga el error
     }
 }
+
+// Función para enviar solicitud a Apps Script para marcar como revisado (usa POST)
+async function markAsReviewedOnSheet(uid) {
+    try {
+        const response = await fetch(APPS_SCRIPT_API_URL, {
+            method: 'POST', // Usamos POST para enviar datos
+            headers: {
+                'Content-Type': 'application/json' // Indicamos que el cuerpo es JSON
+            },
+            body: JSON.stringify({ // Enviamos un objeto JSON con la acción y el UID
+                action: 'markAsReviewed',
+                uid: uid
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json(); // Esperamos una respuesta JSON de Apps Script
+
+        if (result.success) {
+            console.log(`UID ${uid} marcado como revisado exitosamente.`);
+            // Opcional: Actualizar la UI sin recargar toda la página
+            // Por ahora, simplemente recargaremos el dashboard para ver el cambio
+            loadDashboard();
+        } else {
+            console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
+            alert(`Error al marcar como revisado: ${result.message}`); // Mostrar un mensaje al usuario
+        }
+
+    } catch (error) {
+        console.error(`Error en la petición POST para marcar UID ${uid}:`, error);
+        alert(`Error de conexión al intentar marcar como revisado.`); // Mostrar un mensaje al usuario
+    }
+}
+
 
 // Función para mostrar las alertas positivas
 function displayPositiveAlerts(data) {
     listaAlertasDiv.innerHTML = ''; // Limpia el contenido actual
-    const positiveAlerts = data.filter(item => item.Estado === 'Positivo');
 
-    if (positiveAlerts.length === 0) {
+    // Filtra solo las alertas que son Positivas Y NO están marcadas como Revisado
+    const unreviewedPositiveAlerts = data.filter(item => item.Estado === 'Positivo' && item.Revisado !== 'Sí');
+
+    if (unreviewedPositiveAlerts.length === 0) {
         noAlertas.classList.remove('hidden');
     } else {
         noAlertas.classList.add('hidden');
-        positiveAlerts.forEach(alert => {
+        unreviewedPositiveAlerts.forEach(alert => {
             const alertaItem = document.createElement('div');
-            alertaItem.classList.add('alerta-item', 'positivo'); // Añade clase 'positivo' para estilos
+            alertaItem.classList.add('alerta-item', 'positivo');
 
             alertaItem.innerHTML = `
                 <div>
                     <div class="timestamp">${alert.Timestamp}</div>
                     <div class="asunto">${alert.Asunto}</div>
-                </div>
-                <span class="text-xl font-bold text-red-400">!</span>
+                    </div>
+                <button class="mark-reviewed-btn" data-uid="${alert.UID}">Marcar como visto</button>
             `;
+
+            // Añadir el evento click al botón
+            const markButton = alertaItem.querySelector('.mark-reviewed-btn');
+            markButton.addEventListener('click', async () => {
+                // Deshabilitar el botón para evitar clics múltiples
+                markButton.disabled = true;
+                markButton.textContent = 'Marcando...';
+
+                const uid = markButton.dataset.uid; // Obtener el UID del atributo data-uid
+                await markAsReviewedOnSheet(uid); // Llamar a la función para marcar en la hoja
+                // loadDashboard() se llama dentro de markAsReviewedOnSheet si es exitoso
+            });
+
             listaAlertasDiv.appendChild(alertaItem);
         });
     }
@@ -69,12 +120,20 @@ function displayHistory(data) {
         noHistorial.classList.remove('hidden');
     } else {
         noHistorial.classList.add('hidden');
+        // Opcional: Ordenar el historial por fecha descendente
+        data.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+
         data.forEach(item => {
             const row = document.createElement('tr');
             // Añade clase 'positivo' a la fila si el estado es Positivo
             if (item.Estado === 'Positivo') {
                 row.classList.add('positivo');
             }
+             // Añade clase 'revisado' si está marcado como Sí
+            if (item.Revisado === 'Sí') {
+                 row.classList.add('revisado');
+            }
+
 
             row.innerHTML = `
                 <td class="py-3 px-6 text-left">${item.Timestamp}</td>
@@ -82,7 +141,7 @@ function displayHistory(data) {
                 <td class="py-3 px-6 text-left">${item.Estado}</td>
                 <td class="py-3 px-6 text-left">${item.Identificador}</td>
                 <td class="py-3 px-6 text-left">${item.Descripción}</td>
-            `;
+                <td class="py-3 px-6 text-left">${item.Revisado || 'No'}</td> `;
             cuerpoTablaHistorial.appendChild(row);
         });
     }
@@ -101,27 +160,23 @@ async function loadDashboard() {
     try {
         const data = await fetchData(); // Obtiene { headers, data }
 
-        // Asegurarse de que data.data existe y es un array
         if (data && Array.isArray(data.data)) {
-             displayPositiveAlerts(data.data); // Pasa solo el array de datos a las funciones de display
+             // Pasamos el array completo a ambas funciones de display
+             displayPositiveAlerts(data.data);
              displayHistory(data.data);
         } else {
              throw new Error("Datos recibidos de la API no tienen el formato esperado.");
         }
 
-
     } catch (error) {
         console.error("Failed to load dashboard data:", error);
-        // Ocultar indicadores de carga y mostrar mensajes de error
         loadingAlertas.classList.add('hidden');
         loadingHistorial.classList.add('hidden');
         errorAlertas.classList.remove('hidden');
         errorHistorial.classList.remove('hidden');
-        // Limpiar listas si hubo error
         listaAlertasDiv.innerHTML = '';
         cuerpoTablaHistorial.innerHTML = '';
     } finally {
-        // Ocultar indicadores de carga al finalizar (éxito o error)
         loadingAlertas.classList.add('hidden');
         loadingHistorial.classList.add('hidden');
     }
