@@ -13,10 +13,9 @@ body {
     border-radius: 0.5rem; /* rounded-lg */
     padding: 1rem; /* p-4 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* position: relative; -- Ya no es necesario con flexbox */
     cursor: pointer; /* Indica que la tarjeta es clickeable (opcional, si la tarjeta completa es clickeable) */
     transition: background-color 0.2s ease-in-out;
-    /* Usamos flexbox para alinear contenido y el indicador en una fila */
+    /* Usamos flexbox para alinear contenido y el indicador en una fila en pantallas grandes */
     display: flex;
     align-items: center; /* Centra verticalmente los elementos */
     justify-content: space-between; /* Espacio entre el contenido y el indicador */
@@ -45,7 +44,7 @@ body {
     font-size: 0.875rem; /* text-sm */
     color: #94a3b8; /* slate-400 */
     margin-bottom: 0.25rem;
-    /* Estilos para texto en una línea */
+    /* Estilos para texto en una línea por defecto (pantallas grandes) */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -55,8 +54,7 @@ body {
     font-weight: 600; /* font-semibold */
     color: #e2e8f0; /* slate-200 */
     word-break: break-word; /* Romper palabras largas si es necesario */
-    /* padding-right: 30px; -- Ya no es necesario con flexbox y gap */
-    /* Estilos para texto en una línea */
+    /* Estilos para texto en una línea por defecto (pantallas grandes) */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -97,7 +95,7 @@ body {
      margin-top: 10px;
      background: #334155; /* Fondo oscuro para la tabla */
      border-radius: 0.5rem; /* rounded-lg */
-     overflow: hidden;
+     overflow: hidden; /* Importante para que las esquinas redondeadas se vean bien */
      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
@@ -116,7 +114,7 @@ body {
     border-bottom: 1px solid #475569; /* slate-600 */
     padding-left: 1.5rem; /* px-6 */
     padding-right: 1.5rem; /* px-6 */
-    /* Estilos para texto en una línea en las celdas de la tabla */
+    /* Estilos para texto en una línea en las celdas de la tabla por defecto (pantallas grandes) */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -151,4 +149,31 @@ body {
 
 #no-alertas, #no-historial td {
     color: #34d399; /* green-400 */
+}
+
+/* --- Media Query para pantallas pequeñas --- */
+/* Aplicar estilos cuando el ancho de la pantalla sea menor o igual a 768px (ej. tablets y móviles) */
+@media (max-width: 768px) {
+
+    /* En alertas individuales, permitir que el texto se envuelva */
+    .alerta-item .timestamp,
+    .alerta-item .asunto {
+        white-space: normal; /* Permite que el texto se envuelva */
+        overflow: visible; /* Asegura que todo el texto sea visible */
+        text-overflow: clip; /* Elimina los puntos suspensivos */
+    }
+
+    /* En la tabla del historial, permitir que el texto se envuelva en las celdas */
+    #tabla-historial td {
+        white-space: normal; /* Permite que el texto se envuelva */
+        overflow: visible; /* Asegura que todo el texto sea visible */
+        text-overflow: clip; /* Elimina los puntos suspensivos */
+    }
+
+    /* Ajustar la alineación de los elementos de alerta en móviles si es necesario */
+    /* Por ejemplo, podrías querer que el timestamp y asunto estén apilados y el tick debajo */
+    /* Esto es opcional y depende de cómo quieras que se vea exactamente en móvil */
+    /* .alerta-item { flex-direction: column; align-items: flex-start; } */
+    /* .alerta-item .content { width: 100%; } */
+    /* .alerta-item .mark-indicator { margin-top: 10px; align-self: flex-end; } */
 }
