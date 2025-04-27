@@ -216,6 +216,15 @@ function displayHistory(data) {
         // Opcional: Ordenar el historial por fecha descendente
         data.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
 
+        // Identificar los índices de las columnas que queremos mostrar
+        const headers = data.length > 0 ? Object.keys(data[0]) : [];
+        const timestampIndex = headers.indexOf('Timestamp');
+        const asuntoIndex = headers.indexOf('Asunto');
+        const estadoIndex = headers.indexOf('Estado');
+        // Omitimos Identificador y Descripción
+        const revisadoIndex = headers.indexOf('Revisado');
+
+
         data.forEach(item => {
             const row = document.createElement('tr');
             if (item.Estado === 'Positivo') {
@@ -228,12 +237,34 @@ function displayHistory(data) {
             // Formatea el timestamp antes de mostrarlo en la tabla
             const formattedTimestamp = formatDateForDisplay(item.Timestamp);
 
-            row.innerHTML = `
-                <td class="py-3 px-6 text-left">${formattedTimestamp}</td> <td class="py-3 px-6 text-left">${item.Asunto}</td>
-                <td class="py-3 px-6 text-left">${item.Estado}</td>
-                <td class="py-3 px-6 text-left">${item.Identificador}</td>
-                <td class="py-3 px-6 text-left">${item.Descripción}</td>
-                <td class="py-3 px-6 text-left">${item.Revisado || 'No'}</td> `;
+            // Añadir solo las celdas que queremos mostrar
+            if (timestampIndex !== -1) {
+                const td = document.createElement('td');
+                td.classList.add('py-3', 'px-6', 'text-left');
+                td.textContent = formattedTimestamp;
+                row.appendChild(td);
+            }
+             if (asuntoIndex !== -1) {
+                const td = document.createElement('td');
+                td.classList.add('py-3', 'px-6', 'text-left');
+                td.textContent = item.Asunto;
+                row.appendChild(td);
+            }
+             if (estadoIndex !== -1) {
+                const td = document.createElement('td');
+                td.classList.add('py-3', 'px-6', 'text-left');
+                td.textContent = item.Estado;
+                row.appendChild(td);
+            }
+             // Omitimos Identificador y Descripción aquí
+             if (revisadoIndex !== -1) {
+                const td = document.createElement('td');
+                td.classList.add('py-3', 'px-6', 'text-left');
+                td.textContent = item.Revisado || 'No';
+                row.appendChild(td);
+            }
+
+
             cuerpoTablaHistorial.appendChild(row);
         });
     }
@@ -254,7 +285,7 @@ async function loadDashboard() {
 
         if (data && Array.isArray(data.data)) {
              displayPositiveAlerts(data.data);
-             displayHistory(data.data);
+             displayHistory(data.data); // Llama a la función actualizada
         } else {
              throw new Error("Datos recibidos de la API no tienen el formato esperado o están vacíos.");
         }

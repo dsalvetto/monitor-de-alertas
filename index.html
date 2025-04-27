@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitor de Alertas</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="styles.css">
-</head>
+    </head>
 <body class="bg-slate-800 text-slate-200 p-5">
     <div class="container mx-auto">
         <h1 class="text-3xl font-bold mb-8 text-center text-blue-400">Monitor de Alertas de Pedidos</h1>
@@ -32,16 +32,11 @@
                             <th class="py-3 px-6 text-left">Timestamp</th>
                             <th class="py-3 px-6 text-left">Asunto</th>
                             <th class="py-3 px-6 text-left">Estado</th>
-                            <th class="py-3 px-6 text-left">Identificador</th>
-                            <th class="py-3 px-6 text-left">Descripción</th>
                             <th class="py-3 px-6 text-left">Revisado</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla-historial" class="text-slate-300 text-sm font-light">
-                        <tr id="loading-historial"><td colspan="6" class="py-3 px-6 text-center">Cargando historial...</td></tr>
-                        <tr id="no-historial" class="hidden"><td colspan="6" class="py-3 px-6 text-center text-green-400">No hay historial disponible.</td></tr>
-                        <tr id="error-historial" class="hidden"><td colspan="6" class="py-3 px-6 text-center text-red-600">Error al cargar el historial.</td></tr>
-                    </tbody>
+                        <tr id="loading-historial"><td colspan="4" class="py-3 px-6 text-center">Cargando historial...</td></tr> <tr id="no-historial" class="hidden"><td colspan="4" class="py-3 px-6 text-center text-green-400">No hay historial disponible.</td></tr> <tr id="error-historial" class="hidden"><td colspan="4" class="py-3 px-6 text-center text-red-600">Error al cargar el historial.</td></tr> </tbody>
                 </table>
             </div>
         </div>
