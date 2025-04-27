@@ -1,3 +1,5 @@
+// Asumo que este código está en script.js
+// Asegúrate de que APPS_SCRIPT_API_URL esté definida correctamente al inicio de tu script.js
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbz3yMsvamDSbvkGHSzV8C0ARDmHJ5ni_o7xoPpqjMaYTX9tOyhgbEqKvxpqrr2maKI/exec';
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
@@ -9,6 +11,55 @@ const cuerpoTablaHistorial = document.getElementById('cuerpo-tabla-historial');
 const loadingHistorial = document.getElementById('loading-historial');
 const noHistorial = document.getElementById('no-historial');
 const errorHistorial = document.getElementById('error-historial');
+
+
+// --- Función auxiliar para formatear la fecha para mostrar en el frontend ---
+// Recibe la fecha como string en formato "yyyy-MM-dd HH:mm:ss" (como se guarda en la hoja)
+// y la convierte a "dd/mm/yyyy HH:mm".
+function formatDateForDisplay(dateString) {
+    if (!dateString || typeof dateString !== 'string') {
+        return dateString; // Devuelve el valor original si no es un string válido
+    }
+
+    // Intenta parsear el string en formato "yyyy-MM-dd HH:mm:ss"
+    // Nota: Parsear strings de fecha puede ser tricky, este formato es relativamente estándar.
+    // Podrías necesitar ajustar si el formato de la hoja cambia.
+    const parts = dateString.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+
+    if (!parts) {
+        // Si el formato no coincide, intenta con el formato ISO que a veces aparece
+         const isoParts = dateString.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}).*Z/);
+         if(isoParts) {
+              // Si es formato ISO, crea un objeto Date y luego formatéalo
+              try {
+                  const dateObj = new Date(dateString);
+                  const day = String(dateObj.getDate()).padStart(2, '0');
+                  const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Meses son base 0
+                  const year = dateObj.getFullYear();
+                  const hours = String(dateObj.getHours()).padStart(2, '0');
+                  const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                  // Ignoramos los segundos para el formato de visualización
+                  return `${day}/${month}/${year} ${hours}:${minutes}`;
+              } catch (e) {
+                   console.error("Error formatting ISO date:", dateString, e);
+                   return dateString; // Devuelve el original si hay error
+              }
+         }
+
+        console.warn("Could not parse date string:", dateString);
+        return dateString; // Devuelve el valor original si no se puede parsear
+    }
+
+    // Si el formato "yyyy-MM-dd HH:mm:ss" coincide
+    const year = parts[1];
+    const month = parts[2];
+    const day = parts[3];
+    const hours = parts[4];
+    const minutes = parts[5];
+    // Ignoramos los segundos (parts[6]) para el formato de visualización
+
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
 
 
 // Función para obtener datos de la API de Apps Script (usa GET estándar)
@@ -114,8 +165,6 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
 
 
 // Función para mostrar las alertas positivas
-// (Este código no cambia en su lógica de filtrado y creación de elementos,
-// solo se asegura de que el evento click llame a la nueva función markAsReviewedOnSheet)
 function displayPositiveAlerts(data) {
     listaAlertasDiv.innerHTML = ''; // Limpia el contenido actual
 
@@ -127,13 +176,14 @@ function displayPositiveAlerts(data) {
         noAlertas.classList.add('hidden');
         unreviewedPositiveAlerts.forEach(alert => {
             const alertaItem = document.createElement('div');
-            // Añade las clases CSS para el estilo de tarjeta y la línea roja
             alertaItem.classList.add('alerta-item', 'positivo');
+
+            // Formatea el timestamp antes de mostrarlo
+            const formattedTimestamp = formatDateForDisplay(alert.Timestamp);
 
             alertaItem.innerHTML = `
                 <div class="content">
-                    <div class="timestamp">${alert.Timestamp}</div>
-                    <div class="asunto">${alert.Asunto}</div>
+                    <div class="timestamp">${formattedTimestamp}</div> <div class="asunto">${alert.Asunto}</div>
                 </div>
                 <div class="mark-indicator" data-uid="${alert.UID}" title="Marcar como visto">
                      <i class="fas fa-check"></i> </div>
@@ -144,7 +194,6 @@ function displayPositiveAlerts(data) {
                  markIndicator.addEventListener('click', async (event) => {
                     event.stopPropagation();
                     const uid = markIndicator.dataset.uid;
-                    // Llama a la función de marcado que ahora usa JSONP
                     markAsReviewedOnSheet(uid, markIndicator);
                  });
             } else {
@@ -157,7 +206,6 @@ function displayPositiveAlerts(data) {
 }
 
 // Función para mostrar el historial completo
-// (Este código no cambia, solo se incluye por completitud)
 function displayHistory(data) {
     cuerpoTablaHistorial.innerHTML = ''; // Limpia el contenido actual
 
@@ -165,6 +213,7 @@ function displayHistory(data) {
         noHistorial.classList.remove('hidden');
     } else {
         noHistorial.classList.add('hidden');
+        // Opcional: Ordenar el historial por fecha descendente
         data.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
 
         data.forEach(item => {
@@ -176,9 +225,11 @@ function displayHistory(data) {
                  row.classList.add('revisado');
             }
 
+            // Formatea el timestamp antes de mostrarlo en la tabla
+            const formattedTimestamp = formatDateForDisplay(item.Timestamp);
+
             row.innerHTML = `
-                <td class="py-3 px-6 text-left">${item.Timestamp}</td>
-                <td class="py-3 px-6 text-left">${item.Asunto}</td>
+                <td class="py-3 px-6 text-left">${formattedTimestamp}</td> <td class="py-3 px-6 text-left">${item.Asunto}</td>
                 <td class="py-3 px-6 text-left">${item.Estado}</td>
                 <td class="py-3 px-6 text-left">${item.Identificador}</td>
                 <td class="py-3 px-6 text-left">${item.Descripción}</td>
