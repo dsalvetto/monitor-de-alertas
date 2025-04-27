@@ -1,4 +1,4 @@
-const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbz4zqK5OtXT2ZGn_Ba_y7gC3nchX7hxFVdsFsd71SAgXlWixzA5ULqZdW_7-FQhEIIz/exec';
+const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbz3yMsvamDSbvkGHSzV8C0ARDmHJ5ni_o7xoPpqjMaYTX9tOyhgbEqKvxpqrr2maKI/exec';
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
