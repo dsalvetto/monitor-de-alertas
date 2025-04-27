@@ -1,6 +1,6 @@
 // Asumo que este código está en script.js
 // Asegúrate de que APPS_SCRIPT_API_URL esté definida correctamente al inicio de tu script.js
-const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbz3yMsvamDSbvkGHSzV8C0ARDmHJ5ni_o7xoPpqjMaYTX9tOyhgbEqKvxpqrr2maKI/exec';
+const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbxeXpD489DpFr_zcSlYQ2byXx642_forWE5wUUB72kHX9PDW2w93WgrDU8noMXOIBFf/exec';
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
