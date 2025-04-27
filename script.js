@@ -127,6 +127,7 @@ function displayPositiveAlerts(data) {
         noAlertas.classList.add('hidden');
         unreviewedPositiveAlerts.forEach(alert => {
             const alertaItem = document.createElement('div');
+            // Añade las clases CSS para el estilo de tarjeta y la línea roja
             alertaItem.classList.add('alerta-item', 'positivo');
 
             alertaItem.innerHTML = `
@@ -169,7 +170,7 @@ function displayHistory(data) {
         data.forEach(item => {
             const row = document.createElement('tr');
             if (item.Estado === 'Positivo') {
-                row.classList.add('positivo');
+                row.classList.add('positivo'); // Esta clase aplica el color rojo a los TD dentro de esta fila (según el CSS)
             }
             if (item.Revisado === 'Sí') {
                  row.classList.add('revisado');
