@@ -1,6 +1,7 @@
-
+// Asumo que este código está en script.js
 // Asegúrate de que APPS_SCRIPT_API_URL esté definida correctamente al inicio de tu script.js
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbxeXpD489DpFr_zcSlYQ2byXx642_forWE5wUUB72kHX9PDW2w93WgrDU8noMXOIBFf/exec';
+
 
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
@@ -11,6 +12,8 @@ const cuerpoTablaHistorial = document.getElementById('cuerpo-tabla-historial');
 const loadingHistorial = document.getElementById('loading-historial');
 const noHistorial = document.getElementById('no-historial');
 const errorHistorial = document.getElementById('error-historial');
+
+const sheetLink = document.getElementById('sheet-link'); // Referencia al botón de la hoja
 
 
 // --- Función auxiliar para formatear la fecha para mostrar en el frontend ---
@@ -63,10 +66,8 @@ function formatDateForDisplay(dateString) {
 
 
 // Función para obtener datos de la API de Apps Script (usa GET estándar)
-// Esta función no cambia, ya que la carga inicial es una petición GET simple.
 async function fetchData() {
     try {
-        // NOTA: La carga inicial SIGUE usando fetch con GET estándar
         const response = await fetch(APPS_SCRIPT_API_URL);
 
         if (!response.ok) {
@@ -75,38 +76,40 @@ async function fetchData() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data = await response.json(); // La API de Apps Script devuelve JSON estándar para la carga inicial
+        const data = await response.json();
 
         if (data.error) {
             console.error("API Error:", data.error);
             throw new Error(`API Error: ${data.error}`);
         }
 
-        return data; // Devuelve el objeto { headers, data }
+        return data;
     } catch (error) {
         console.error("Error fetching data:", error);
-        throw error; // Propaga el error
+        throw error;
     }
 }
 
 // --- Función para enviar solicitud a Apps Script para marcar como revisado (usa JSONP) ---
-// Esta función reemplaza la versión anterior que usaba fetch con POST.
 function markAsReviewedOnSheet(uid, markIndicatorElement) {
     // Deshabilitar el indicador visualmente durante la petición
     if (markIndicatorElement) {
         markIndicatorElement.style.pointerEvents = 'none'; // Deshabilita clics
         markIndicatorElement.style.opacity = '0.5'; // Atenuar visualmente
-        // Opcional: cambiar contenido o clase para indicar "cargando"
-        // markIndicatorElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Ícono de carga
+        // Mostrar ícono de carga (spinner) de Font Awesome
+        markIndicatorElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     }
 
-    // Genera un nombre de función callback único para esta petición
     const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
 
-    // Define la función callback globalmente
     window[callbackName] = function(result) {
-        // Esta función se ejecuta cuando el Apps Script responde
         console.log(`Respuesta JSONP recibida para UID ${uid}:`, result);
+
+        // Revertir ícono de carga a checkmark original
+        if (markIndicatorElement) {
+             markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
+        }
+
 
         if (result.success) {
             console.log(`UID ${uid} marcado como revisado exitosamente.`);
@@ -114,14 +117,12 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
             loadDashboard(); // Llama a loadDashboard para obtener los datos actualizados y mostrarlos filtrados
         } else {
             console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
-            alert(`Error al marcar como revisado: ${result.message}`); // Mostrar un mensaje al usuario
+            alert(`Error al marcar como revisado: ${result.message}`);
 
             // Revertir estado visual si hubo error
             if (markIndicatorElement) {
                 markIndicatorElement.style.pointerEvents = 'auto';
                 markIndicatorElement.style.opacity = '1';
-                 // Revertir ícono de carga si lo usaste
-                 // markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
             }
         }
 
@@ -133,26 +134,23 @@ function markAsReviewedOnSheet(uid, markIndicatorElement) {
         }
     };
 
-    // Construye la URL para la petición JSONP
-    // Añadimos action, uid y el nombre de la función callback como parámetros GET
     const scriptUrl = `${APPS_SCRIPT_API_URL}?action=markAsReviewed&uid=${encodeURIComponent(uid)}&callback=${callbackName}`;
 
-    // Crea e inyecta la etiqueta script
     const scriptElement = document.createElement('script');
     scriptElement.src = scriptUrl;
-    scriptElement.id = callbackName + '_script'; // Asigna un ID para poder removerlo después
+    scriptElement.id = callbackName + '_script';
     document.body.appendChild(scriptElement);
 
-    // Opcional: Manejar errores de carga del script (ej. red)
     scriptElement.onerror = function() {
         console.error(`Error al cargar el script JSONP para UID ${uid}.`);
         alert(`Error de conexión al intentar marcar como revisado.`);
-         // Revertir estado visual si hubo error
+
+        // Revertir estado visual si hubo error de conexión
         if (markIndicatorElement) {
             markIndicatorElement.style.pointerEvents = 'auto';
             markIndicatorElement.style.opacity = '1';
-             // Revertir ícono de carga si lo usaste
-             // markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
+             // Revertir ícono de carga a checkmark original
+             markIndicatorElement.innerHTML = '<i class="fas fa-check"></i>';
         }
         // Limpiar la función callback aunque el script no cargó
         delete window[callbackName];
@@ -184,7 +182,8 @@ function displayPositiveAlerts(data) {
 
             alertaItem.innerHTML = `
                 <div class="content">
-                    <div class="timestamp">${formattedTimestamp}</div> <div class="asunto">${alert.Asunto}</div>
+                    <div class="timestamp">${formattedTimestamp}</div>
+                    <div class="asunto">${alert.Asunto}</div>
                 </div>
                 <div class="mark-indicator" data-uid="${alert.UID}" title="Marcar como visto">
                      <i class="fas fa-check"></i> </div>
@@ -222,18 +221,24 @@ function displayHistory(data) {
         const timestampIndex = headers.indexOf('Timestamp');
         const asuntoIndex = headers.indexOf('Asunto');
         const estadoIndex = headers.indexOf('Estado');
-        // Omitimos Identificador y Descripción
         const revisadoIndex = headers.indexOf('Revisado');
 
 
-        data.forEach(item => {
+        data.forEach((item, index) => { // Añadimos 'index' para el número secuencial
             const row = document.createElement('tr');
             if (item.Estado === 'Positivo') {
-                row.classList.add('positivo'); // Esta clase aplica el color rojo a los TD dentro de esta fila (según el CSS)
+                row.classList.add('positivo');
             }
             if (item.Revisado === 'Sí') {
                  row.classList.add('revisado');
             }
+
+            // --- Añadir la celda del número secuencial ---
+            const numberTd = document.createElement('td');
+            numberTd.classList.add('py-3', 'px-6', 'text-left', 'col-number'); // Añadir clase para estilos
+            numberTd.textContent = index + 1; // Número secuencial (base 1)
+            row.appendChild(numberTd);
+
 
             // Formatea el timestamp antes de mostrarlo en la tabla
             const formattedTimestamp = formatDateForDisplay(item.Timestamp);
@@ -257,7 +262,6 @@ function displayHistory(data) {
                 td.textContent = item.Estado;
                 row.appendChild(td);
             }
-             // Omitimos Identificador y Descripción aquí
              if (revisadoIndex !== -1) {
                 const td = document.createElement('td');
                 td.classList.add('py-3', 'px-6', 'text-left');
@@ -271,9 +275,8 @@ function displayHistory(data) {
     }
 }
 
-// --- Función principal para cargar y mostrar todo ---
+// Función principal para cargar y mostrar todo
 async function loadDashboard() {
-    // Mostrar indicadores de carga
     loadingAlertas.classList.remove('hidden');
     loadingHistorial.classList.remove('hidden');
     noAlertas.classList.add('hidden');
@@ -282,34 +285,29 @@ async function loadDashboard() {
     errorHistorial.classList.add('hidden');
 
     try {
-        const data = await fetchData(); // Obtiene { headers, data }
+        const data = await fetchData();
 
         if (data && Array.isArray(data.data)) {
             // --- Filtrar para obtener solo una entrada por UID único ---
             const uniqueAlertsMap = new Map();
-            const uidIndex = data.headers.indexOf('UID'); // Obtener el índice de la columna UID
+            const uidIndex = data.headers.indexOf('UID');
 
             if (uidIndex !== -1) {
-                // Iterar sobre los datos y guardar la última entrada para cada UID
                 data.data.forEach(item => {
-                    const uid = item.UID; // Acceder al UID usando el nombre de la columna
-                    if (uid) { // Asegurarse de que el UID no sea nulo o vacío
+                    const uid = item.UID;
+                    if (uid) {
                         uniqueAlertsMap.set(uid, item);
                     }
                 });
             } else {
                  console.error("Error: 'UID' column not found in fetched data headers.");
-                 // Si no hay columna UID, mostramos todos los datos sin filtrar por UID
-                 data.data.forEach(item => uniqueAlertsMap.set(JSON.stringify(item), item)); // Usar la fila completa como clave (menos eficiente)
+                 data.data.forEach(item => uniqueAlertsMap.set(JSON.stringify(item), item));
             }
 
-
-            // Convertir el Map de vuelta a un array de objetos
             const uniqueAlerts = Array.from(uniqueAlertsMap.values());
 
-             // Pasamos el array filtrado a ambas funciones de display
              displayPositiveAlerts(uniqueAlerts);
-             displayHistory(uniqueAlerts); // Llama a la función actualizada
+             displayHistory(uniqueAlerts);
         } else {
              throw new Error("Datos recibidos de la API no tienen el formato esperado o están vacíos.");
         }
@@ -328,9 +326,17 @@ async function loadDashboard() {
     }
 }
 
-// Ejecutar la función principal cuando la página cargue
-window.onload = loadDashboard;
+// --- Asignar la URL de la hoja al botón cuando la página cargue ---
+window.onload = function() {
+    loadDashboard(); // Cargar el dashboard
+    if (sheetLink && GOOGLE_SHEET_URL !== 'REEMPLAZAR_CON_LA_URL_DE_TU_HOJA_DE_CALCULO') {
+        sheetLink.href = GOOGLE_SHEET_URL; // Asigna la URL real al atributo href
+    } else if (sheetLink) {
+         console.warn("GOOGLE_SHEET_URL not set. Please update the constant in script.js");
+         sheetLink.style.display = 'none'; // Ocultar el botón si la URL no está configurada
+    }
+};
+
 
 // Opcional: Recargar datos periódicamente (ej: cada 5 minutos)
 // setInterval(loadDashboard, 5 * 60 * 1000); // 5 minutos en milisegundos
-
