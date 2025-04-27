@@ -1,6 +1,5 @@
 const APPS_SCRIPT_API_URL = 'https://script.google.com/macros/s/AKfycbzMt-SOU-8M_pQHSbnHbMA1Zggs8uYljdcezBkG_fTaYNj4gnHvREC529eWorjFT99_/exec';
 
-
 const listaAlertasDiv = document.getElementById('lista-alertas');
 const loadingAlertas = document.getElementById('loading-alertas');
 const noAlertas = document.getElementById('no-alertas');
@@ -18,7 +17,6 @@ async function fetchData() {
         const response = await fetch(APPS_SCRIPT_API_URL);
 
         if (!response.ok) {
-            // Intentar leer el cuerpo del error si es posible
             const errorBody = await response.text();
             console.error(`HTTP error! status: ${response.status}`, errorBody);
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -26,7 +24,6 @@ async function fetchData() {
 
         const data = await response.json(); // La API de Apps Script devuelve JSON
 
-        // La función doGet devuelve { headers: [...], data: [...] } o { error: "..." }
         if (data.error) {
             console.error("API Error:", data.error);
             throw new Error(`API Error: ${data.error}`);
@@ -40,36 +37,58 @@ async function fetchData() {
 }
 
 // Función para enviar solicitud a Apps Script para marcar como revisado (usa POST)
-async function markAsReviewedOnSheet(uid) {
+async function markAsReviewedOnSheet(uid, markIndicatorElement) {
+    // Deshabilitar el indicador visualmente durante la petición
+    if (markIndicatorElement) {
+        markIndicatorElement.style.pointerEvents = 'none'; // Deshabilita clics
+        markIndicatorElement.style.opacity = '0.5'; // Atenuar visualmente
+        // Opcional: cambiar contenido o clase para indicar "cargando"
+    }
+
     try {
         const response = await fetch(APPS_SCRIPT_API_URL, {
-            method: 'POST',
-            mode: 'cors', // Asegúrate de que esto está configurado
+            method: 'POST', // Usamos POST para enviar datos
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json' // Indicamos que el cuerpo es JSON
             },
-            body: JSON.stringify({
+            body: JSON.stringify({ // Enviamos un objeto JSON con la acción y el UID
                 action: 'markAsReviewed',
                 uid: uid
             })
         });
 
         if (!response.ok) {
-            const errorBody = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}`);
+             const errorBody = await response.text();
+             console.error(`HTTP error! status: ${response.status}`, errorBody);
+             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const result = await response.json();
+        const result = await response.json(); // Esperamos una respuesta JSON de Apps Script
 
         if (result.success) {
             console.log(`UID ${uid} marcado como revisado exitosamente.`);
+            // Recargar el dashboard para ver el cambio
             loadDashboard();
         } else {
-            throw new Error(result.message);
+            console.error(`Error al marcar UID ${uid} como revisado: ${result.message}`);
+            alert(`Error al marcar como revisado: ${result.message}`); // Mostrar un mensaje al usuario
+
+            // Revertir estado visual si hubo error
+            if (markIndicatorElement) {
+                markIndicatorElement.style.pointerEvents = 'auto';
+                markIndicatorElement.style.opacity = '1';
+            }
         }
+
     } catch (error) {
-        console.error(`Error al marcar UID ${uid}:`, error);
-        alert(`Error: ${error.message}`);
+        console.error(`Error en la petición POST para marcar UID ${uid}:`, error);
+        alert(`Error de conexión al intentar marcar como revisado.`); // Mostrar un mensaje al usuario
+
+         // Revertir estado visual si hubo error de conexión
+        if (markIndicatorElement) {
+            markIndicatorElement.style.pointerEvents = 'auto';
+            markIndicatorElement.style.opacity = '1';
+        }
     }
 }
 
@@ -89,26 +108,24 @@ function displayPositiveAlerts(data) {
             const alertaItem = document.createElement('div');
             alertaItem.classList.add('alerta-item', 'positivo');
 
-            // --- Nueva estructura interna para el diseño ---
+            // --- Estructura interna para el diseño original con indicador sutil ---
             alertaItem.innerHTML = `
                 <div class="content">
                     <div class="timestamp">${alert.Timestamp}</div>
                     <div class="asunto">${alert.Asunto}</div>
                     </div>
-                <button class="mark-reviewed-btn" data-uid="${alert.UID}">Marcar como visto</button>
+                <div class="mark-indicator" data-uid="${alert.UID}" title="Marcar como visto">
+                    </div>
             `;
-            // --- Fin Nueva estructura ---
+            // --- Fin Estructura ---
 
-            // Añadir el evento click al botón
-            const markButton = alertaItem.querySelector('.mark-reviewed-btn');
-            markButton.addEventListener('click', async () => {
-                // Deshabilitar el botón para evitar clics múltiples
-                markButton.disabled = true;
-                markButton.textContent = 'Marcando...';
+            // Añadir el evento click al indicador de marcado
+            const markIndicator = alertaItem.querySelector('.mark-indicator');
+            markIndicator.addEventListener('click', async (event) => {
+                event.stopPropagation(); // Evita que el clic en el indicador también active el clic en la tarjeta si lo implementas
 
-                const uid = markButton.dataset.uid; // Obtener el UID del atributo data-uid
-                await markAsReviewedOnSheet(uid); // Llamar a la función para marcar en la hoja
-                // loadDashboard() se llama dentro de markAsReviewedOnSheet si es exitoso
+                const uid = markIndicator.dataset.uid; // Obtener el UID del atributo data-uid
+                await markAsReviewedOnSheet(uid, markIndicator); // Llamar a la función para marcar en la hoja, pasando el elemento indicador
             });
 
             listaAlertasDiv.appendChild(alertaItem);
@@ -129,11 +146,11 @@ function displayHistory(data) {
 
         data.forEach(item => {
             const row = document.createElement('tr');
-            // Añade clase 'positivo' a la fila si el estado es Positivo
+            // Añade clase 'positivo' a la fila si el estado es Positivo (para color rojo)
             if (item.Estado === 'Positivo') {
                 row.classList.add('positivo');
             }
-             // Añade clase 'revisado' si está marcado como Sí
+             // Añade clase 'revisado' si está marcado como Sí (para texto atenuado/itálica)
             if (item.Revisado === 'Sí') {
                  row.classList.add('revisado');
             }
