@@ -120,6 +120,15 @@ body {
     text-overflow: ellipsis;
 }
 
+ /* Estilo para la columna de número secuencial */
+#tabla-historial th.col-number,
+#tabla-historial td.col-number {
+    width: 50px; /* Ancho fijo para la columna de número */
+    text-align: center; /* Centrar el número */
+    flex-shrink: 0; /* Evitar que se encoja */
+}
+
+
  /* Asegura que las celdas de la fila positiva tengan el color rojo */
 #tabla-historial tbody tr.positivo td {
     color: #f87171; /* red-400 */
@@ -151,9 +160,59 @@ body {
     color: #34d399; /* green-400 */
 }
 
+/* Contenedor para el título del historial y el botón */
+.historial-header {
+    display: flex; /* Usa flexbox para alinear el título y el botón */
+    align-items: center; /* Centra verticalmente */
+    justify-content: space-between; /* Espacio entre el título y el botón */
+    margin-bottom: 1rem; /* mb-4 */
+}
+
+/* Estilo para el título del historial */
+.historial-header h2 {
+    margin-bottom: 0; /* Eliminar el margen inferior del título */
+}
+
+
+/* Estilo para el botón de ir a la hoja */
+.sheet-button {
+    background-color: #60a5fa; /* blue-400 - Color del título principal */
+    color: white;
+    padding: 0.5rem 1rem; /* Ajustar padding para que no sea tan grande como el anterior */
+    border-radius: 0.25rem; /* rounded */
+    font-weight: 600; /* font-semibold */
+    transition: background-color 0.2s ease-in-out;
+    text-decoration: none; /* Quitar subrayado del enlace */
+    display: inline-block; /* Permitir padding y margin */
+    font-size: 0.875rem; /* text-sm - Ajustar tamaño de fuente */
+    line-height: 1.25rem; /* leading-tight - Ajustar altura de línea */
+}
+
+.sheet-button:hover {
+    background-color: #3b82f6; /* blue-500 */
+}
+
+
 /* --- Media Query para pantallas pequeñas --- */
 /* Aplicar estilos cuando el ancho de la pantalla sea menor o igual a 768px (ej. tablets y móviles) */
 @media (max-width: 768px) {
+
+     /* Ajustar la alineación del header del historial en pantallas pequeñas */
+    .historial-header {
+         flex-direction: column; /* Apilar título y botón */
+         align-items: flex-start; /* Alinear elementos a la izquierda */
+         gap: 10px; /* Espacio entre elementos apilados */
+    }
+
+     .historial-header h2 {
+         margin-bottom: 0; /* Asegurar que no haya margen inferior extra */
+     }
+
+     .sheet-button {
+         width: auto; /* Permitir que el botón tome el ancho necesario */
+         margin-bottom: 0; /* Eliminar margen inferior si está apilado */
+     }
+
 
     /* En alertas individuales, permitir que el texto se envuelva */
     .alerta-item .timestamp,
