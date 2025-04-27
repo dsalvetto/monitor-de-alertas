@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Alertas</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Configuración básica de fuente y margen */
+        body {
+            font-family: 'Inter', sans-serif; /* Usando Inter como se sugirió */
+            margin: 0;
+            padding: 20px;
+            background-color: #1e293b; /* Fondo oscuro */
+            color: #e2e8f0; /* Texto claro */
+        }
+
+        /* Estilos básicos personalizados, complementan Tailwind */
+.alerta-item {
+    background-color: #334155; /* slate-700 */
+    border-radius: 0.5rem; /* rounded-lg */
+    padding: 1rem; /* p-4 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alerta-item.positivo {
+    border-left: 5px solid #f87171; /* red-400 */
+}
+
+.alerta-item .timestamp {
+    font-size: 0.875rem; /* text-sm */
+    color: #94a3b8; /* slate-400 */
+    margin-bottom: 0.5rem;
+}
+
+.alerta-item .asunto {
+    font-weight: 600; /* font-semibold */
+    color: #e2e8f0; /* slate-200 */
+}
+
+/* Estilos para la tabla */
+#tabla-historial th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #475569; /* slate-600 */
+    color: white;
+}
+
+#tabla-historial td {
+    padding: 12px 6px;
+    border-bottom: 1px solid #475569; /* slate-600 */
+}
+
+#tabla-historial tbody tr:hover {
+    background-color: #334155; /* slate-700 */
+}
+
+/* Estilo para filas positivas en el historial */
+#tabla-historial tbody tr.positivo td {
+    color: #f87171; /* red-400 */
+    font-weight: 600;
+}
+    </style>
+</head>
+<body class="bg-slate-800 text-slate-200 p-5">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center text-blue-400">Monitor de Alertas de Pedidos</h1>
+
+        <div id="alertas-positivas" class="mb-10">
+            <h2 class="text-2xl font-semibold mb-4 text-red-400">Alertas Positivas Recientes</h2>
+            <div id="lista-alertas" class="space-y-4">
+                <p id="loading-alertas" class="text-slate-400">Cargando alertas...</p>
+                <p id="no-alertas" class="hidden text-green-400">No hay alertas positivas recientes.</p>
+                <p id="error-alertas" class="hidden text-red-600">Error al cargar las alertas.</p>
+            </div>
+        </div>
+
+        <hr class="my-8 border-slate-600">
+
+        <div id="registro-historico">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-400">Historial de Correos Procesados</h2>
+            <div class="overflow-x-auto">
+                <table id="tabla-historial" class="min-w-full bg-slate-700 rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-slate-600 text-slate-200 uppercase text-sm leading-normal">
+                            <th class="py-3 px-6 text-left">Timestamp</th>
+                            <th class="py-3 px-6 text-left">Asunto</th>
+                            <th class="py-3 px-6 text-left">Estado</th>
+                            <th class="py-3 px-6 text-left">Identificador</th>
+                            <th class="py-3 px-6 text-left">Descripción</th>
+                            </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-historial" class="text-slate-300 text-sm font-light">
+                        <tr id="loading-historial"><td colspan="5" class="py-3 px-6 text-center">Cargando historial...</td></tr>
+                        <tr id="no-historial" class="hidden"><td colspan="5" class="py-3 px-6 text-center text-green-400">No hay historial disponible.</td></tr>
+                         <tr id="error-historial" class="hidden"><td colspan="5" class="py-3 px-6 text-center text-red-600">Error al cargar el historial.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
